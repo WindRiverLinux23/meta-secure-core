@@ -1,0 +1,71 @@
+From 9f4a23700c3385c429641071394a9426951f6b2e Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Wed, 17 May 2023 14:58:07 +0800
+Subject: [PATCH] Add external key file to LUKS partitions
+
+Beside TPM, use option --key-file=xxx to add external key file
+to LUKS partitions
+
+Upstream-Status: Pending
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ scripts/luks-setup.sh | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/scripts/luks-setup.sh b/scripts/luks-setup.sh
+index b741866..b58ed52 100755
+--- a/scripts/luks-setup.sh
++++ b/scripts/luks-setup.sh
+@@ -192,6 +192,11 @@ map_luks_partition() {
+     ! cryptsetup luksOpen --key-file "$passphrase" "$luks_dev" "$luks_name" &&
+         print_error "Unable to map the LUKS partition $luks_name" && return 1
+ 
++    if [ -n "$OPT_KEY_FILE" -a -e "$OPT_KEY_FILE" ]; then
++	    ! cryptsetup luksAddKey --key-file "$passphrase" "$luks_dev" "$OPT_KEY_FILE" &&
++            print_error "Unable to Add key file to  LUKS partition $luks_name" && return 1
++	fi
++
+     return 0
+ }
+ 
+@@ -230,6 +235,10 @@ Options:
+     (Optional) Set the mapped name for the dmcrypt target device.
+     e.g. /dev/mapper/<mapped name>.
+ 
++ -k|--key-file <key-file>
++    (Optional) Add external key file to LUKS partitions.
++    e.g. /boot/efi/boot.key.
++
+     The default name is $DEFAULT_ENCRYPTION_NAME.
+ 
+  -f|--force
+@@ -278,6 +287,7 @@ OPT_MAP_EXISTING_LUKS=0
+ OPT_NO_SETUP=0
+ OPT_OLD_LOCKOUT_AUTH=""
+ OPT_LOUCKOUT_AUTH=""
++OPT_KEY_FILE=""
+ 
+ while [ $# -gt 0 ]; do
+     opt=$1
+@@ -291,6 +301,9 @@ while [ $# -gt 0 ]; do
+ 	-n|--name)
+ 	    shift && option_check $1 && OPT_LUKS_NAME="$1"
+ 	    ;;
++	-k|--key-file)
++	    shift && option_check $1 && OPT_KEY_FILE="$1"
++	    ;;
+ 	-m|--map-existing)
+             OPT_MAP_EXISTING_LUKS=1
+             ;;
+@@ -334,7 +347,6 @@ done
+ trap "trap_handler $?" SIGINT EXIT
+ 
+ OPT_LUKS_NAME="${OPT_LUKS_NAME:-$DEFAULT_ENCRYPTION_NAME}"
+-
+ ###### OPT_NO_SETUP Handling start ######
+ if [ $OPT_NO_SETUP -eq 1 ] && [ $OPT_UNMAP_LUKS -eq 1 ] ; then
+     unmap_luks_partition "$OPT_LUKS_NAME"
+-- 
+2.27.0
+
