@@ -25,6 +25,7 @@ SRC_URI = "\
     file://0002-encrypt_secret.py-fix-for-python3.patch \
     file://0003-env.mk-add-ld-option-noexecstack.patch \
     file://0004-Remove-embedded-build-machine-uname.patch \
+    file://0001-Add-external-key-file-to-LUKS-partitions.patch \
 "
 SRCREV = "91ac485a2495c2ed9fd9aac85d22f299467a6c80"
 
