@@ -1,0 +1,42 @@
+From ccb36b27c77e5f163ef3b15a28ae5b4823d095e6 Mon Sep 17 00:00:00 2001
+From: Glenn Washburn <development@efficientek.com>
+Date: Thu, 9 Dec 2021 11:14:58 -0600
+Subject: [PATCH 08/28] cryptodisk: Improve handling of partition name in
+ cryptomount password prompt
+
+Call grub_partition_get_name() unconditionally to initialize the part
+variable. Then part will only be NULL when grub_partition_get_name() errors.
+Note that when source->partition is NULL, then grub_partition_get_name()
+returns an allocated empty string. So no comma or partition will be printed,
+as desired.
+
+Signed-off-by: Glenn Washburn <development@efficientek.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+
+Upstream-Status: Backport [e5de00439c2f040d601e374c84e1545db5ebf8eb]
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ grub-core/disk/cryptodisk.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/grub-core/disk/cryptodisk.c b/grub-core/disk/cryptodisk.c
+index 7ca880402..497097394 100644
+--- a/grub-core/disk/cryptodisk.c
++++ b/grub-core/disk/cryptodisk.c
+@@ -1021,11 +1021,10 @@ grub_cryptodisk_scan_device_real (const char *name,
+       {
+ 	/* Get the passphrase from the user, if no key data. */
+ 	askpass = 1;
+-	if (source->partition != NULL)
+-	  part = grub_partition_get_name (source->partition);
++	part = grub_partition_get_name (source->partition);
+ 	grub_printf_ (N_("Enter passphrase for %s%s%s (%s): "), source->name,
+ 		     source->partition != NULL ? "," : "",
+-		     part != NULL ? part : "",
++		     part != NULL ? part : N_("UNKNOWN"),
+ 		     dev->uuid);
+ 	grub_free (part);
+ 
+-- 
+2.27.0
+
