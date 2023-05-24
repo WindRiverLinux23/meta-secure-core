@@ -98,8 +98,14 @@ EOF
   else
     > ${WORKDIR}/cfg
 	fi
-	cat<<EOF>>${WORKDIR}/cfg
+
+	if ${@bb.utils.contains('DISTRO_FEATURES', 'ostree', 'false', 'true', d)}; then
+		cat<<EOF>>${WORKDIR}/cfg
 search.file (\$cmdpath)${GRUB_PREFIX_DIR}/grub.cfg root
+EOF
+	fi
+
+	cat<<EOF>>${WORKDIR}/cfg
 set prefix=(\$root)${GRUB_PREFIX_DIR}
 EOF
 }
