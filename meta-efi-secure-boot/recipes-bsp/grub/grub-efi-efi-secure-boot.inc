@@ -194,8 +194,7 @@ fakeroot python do_sign:class-target() {
         uks_bl_sign(dir + 'efi-secure-boot.inc', d)
         uks_bl_sign(dir + 'password.inc', d)
 
-    if bb.utils.contains('DISTRO_FEATURES', 'ostree', 'True', 'False', d) and \
-       bb.utils.contains('DISTRO_FEATURES', 'luks', 'True', 'False', d):
+    if bb.utils.filter('DISTRO_FEATURES', 'ostree', d) and bb.utils.filter('DISTRO_FEATURES', 'luks', d):
         dir = image_dir + d.getVar('datadir', True) + '/grub/'
         uks_bl_sign(dir + 'boot.key', d)
 
@@ -212,8 +211,8 @@ fakeroot do_chownboot() {
         chown root:root -R "${D}${EFI_BOOT_PATH}/efi-secure-boot.inc${SB_FILE_EXT}"
         chown root:root -R "${D}${EFI_BOOT_PATH}/password.inc${SB_FILE_EXT}"
     }
-    if [ ${@bb.utils.contains('DISTRO_FEATURES', 'luks', 'true', 'false', d)} \
-         ${@bb.utils.contains('DISTRO_FEATURES', 'ostree', 'true', 'false', d)} ]; then
+    if [ ${@bb.utils.contains('DISTRO_FEATURES', 'luks', 'true', 'false', d)} = 'true' -a \
+         ${@bb.utils.contains('DISTRO_FEATURES', 'ostree', 'true', 'false', d)} = 'true' ]; then
         chown root:root -R "${D}${datadir}/grub/boot.key${SB_FILE_EXT}"
     fi
 }
