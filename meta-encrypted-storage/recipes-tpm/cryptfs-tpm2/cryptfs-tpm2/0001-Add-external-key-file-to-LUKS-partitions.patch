@@ -23,7 +23,7 @@ index b741866..b58ed52 100755
  
 +    if [ -n "$OPT_KEY_FILE" -a -e "$OPT_KEY_FILE" ]; then
 +	    ! cryptsetup luksAddKey --key-file "$passphrase" "$luks_dev" "$OPT_KEY_FILE" &&
-+            print_error "Unable to Add key file to  LUKS partition $luks_name" && return 1
++            print_error "Unable to add key file to LUKS partition $luks_name" && return 1
 +	fi
 +
      return 0
