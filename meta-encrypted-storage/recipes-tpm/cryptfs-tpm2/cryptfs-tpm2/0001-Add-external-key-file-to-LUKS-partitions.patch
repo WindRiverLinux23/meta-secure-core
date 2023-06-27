@@ -1,6 +1,6 @@
-From 9f4a23700c3385c429641071394a9426951f6b2e Mon Sep 17 00:00:00 2001
+From cd5007505638fa632471ee60b992185ba2299631 Mon Sep 17 00:00:00 2001
 From: Hongxu Jia <hongxu.jia@windriver.com>
-Date: Wed, 17 May 2023 14:58:07 +0800
+Date: Tue, 27 Jun 2023 14:58:14 +0800
 Subject: [PATCH] Add external key file to LUKS partitions
 
 Beside TPM, use option --key-file=xxx to add external key file
@@ -9,20 +9,65 @@ to LUKS partitions
 Upstream-Status: Pending
 
 Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+
+Fix GRUB2 long decrypt time for encrypted /boot
+
+The new key is used by GRUB to decrypt encrypted /boot.
+
+The grub will decode slots 0 and 1. It doesn't know in advance which
+one will decrypt with the key file you provided so it will test them all
+until it manages to decrypt a slot[1]. Place the newly added key file to
+slot 0 to save search time for grub. And place original tpm key to slot 1.
+
+Set --iter-time 10 for the newly added key file to save the decrypt
+time for grub. Here is the manual[2][3][4]:
+
+   --key-slot, -S <0-N>
+       For LUKS operations that add key material, this option allows
+       you to specify which key slot is selected for the new key.
+
+   --new-key-slot <0-N>
+       This option allows you to specify which key slot is selected
+       for the new key.
+
+   --iter-time, -i <number of milliseconds>
+       The number of milliseconds to spend with PBKDF passphrase
+       processing. Specifying 0 as parameter selects the compiled-in
+       default.
+
+[1] https://bbs.archlinux.org/viewtopic.php?id=228865
+[2] https://man7.org/linux/man-pages/man8/cryptsetup-luksformat.8.html
+[3] https://man7.org/linux/man-pages/man8/cryptsetup-luksOpen.8.html
+[4] https://man7.org/linux/man-pages/man8/cryptsetup-luksAddKey.8.html
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
 ---
- scripts/luks-setup.sh | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ scripts/luks-setup.sh | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
 diff --git a/scripts/luks-setup.sh b/scripts/luks-setup.sh
-index b741866..b58ed52 100755
+index b741866..32eea63 100755
 --- a/scripts/luks-setup.sh
 +++ b/scripts/luks-setup.sh
-@@ -192,6 +192,11 @@ map_luks_partition() {
-     ! cryptsetup luksOpen --key-file "$passphrase" "$luks_dev" "$luks_name" &&
+@@ -171,7 +171,7 @@ create_luks_partition() {
+     fi
+ 
+     ! cryptsetup --type luks --cipher aes-xts-plain --hash sha256 \
+-        --use-random --key-file "$passphrase" luksFormat "$luks_dev" &&
++        --use-random --key-slot 1 --key-file "$passphrase" luksFormat "$luks_dev" &&
+         print_error "Unable to create the LUKS partition on $luks_dev" &&
+         return 1
+ 
+@@ -189,9 +189,14 @@ map_luks_partition() {
+ 
+     [ "$tpm_absent" = "0" ] && passphrase="$4/passphrase"
+ 
+-    ! cryptsetup luksOpen --key-file "$passphrase" "$luks_dev" "$luks_name" &&
++    ! cryptsetup luksOpen --key-slot 1 --key-file "$passphrase" "$luks_dev" "$luks_name" &&
          print_error "Unable to map the LUKS partition $luks_name" && return 1
  
 +    if [ -n "$OPT_KEY_FILE" -a -e "$OPT_KEY_FILE" ]; then
-+	    ! cryptsetup luksAddKey --key-file "$passphrase" "$luks_dev" "$OPT_KEY_FILE" &&
++	    ! cryptsetup luksAddKey --iter-time 10 --new-key-slot 0 --key-file "$passphrase" "$luks_dev" "$OPT_KEY_FILE" &&
 +            print_error "Unable to add key file to LUKS partition $luks_name" && return 1
 +	fi
 +
