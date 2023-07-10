@@ -1,0 +1,37 @@
+From e13bceb0a7afcbff1c0ebff73446dacd2f229dd6 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Mon, 10 Jul 2023 14:15:53 +0800
+Subject: [PATCH] kern/efi/sb: skip verification of cryptodisk encryption key
+
+While secure boot enabled, grub decrypted boot disk via cryptodisk
+encryption key failed
+...
+cryptomount -u ${crypt_boot_b_uuid} -k ${prefix}/boot.key
+error: prohibited by secure boot policy
+...
+
+Add cryptodisk encryption key to the list of files that do not affect
+secureboot state
+
+Upstream-Status: Inappropriate [OE specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ grub-core/kern/efi/sb.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/grub-core/kern/efi/sb.c b/grub-core/kern/efi/sb.c
+index 89c4bb3..1d48d68 100644
+--- a/grub-core/kern/efi/sb.c
++++ b/grub-core/kern/efi/sb.c
+@@ -162,6 +162,7 @@ shim_lock_verifier_init (grub_file_t io __attribute__ ((unused)),
+     case GRUB_FILE_TYPE_LOADENV:
+     case GRUB_FILE_TYPE_SAVEENV:
+     case GRUB_FILE_TYPE_VERIFY_SIGNATURE:
++    case GRUB_FILE_TYPE_CRYPTODISK_ENCRYPTION_KEY:
+       *flags = GRUB_VERIFY_FLAGS_SKIP_VERIFICATION;
+       return GRUB_ERR_NONE;
+ 
+-- 
+2.27.0
+
