@@ -11,6 +11,7 @@ SRC_URI:append:class-target = " \
     file://0009-cryptodisk-Fix-Coverity-use-after-free-bug.patch \
     file://0010-disk-Remove-trailing-whitespaces.patch \
     file://0011-disk-cryptodisk-Add-options-to-cryptomount-to-suppor.patch \
+    file://0012-kern-efi-sb-skip-verification-of-cryptodisk-encrypti.patch \
 "
 
 DEPENDS:append:class-target = " \
