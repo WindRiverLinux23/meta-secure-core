@@ -26,6 +26,7 @@ SRC_URI = "\
     file://0003-env.mk-add-ld-option-noexecstack.patch \
     file://0004-Remove-embedded-build-machine-uname.patch \
     file://0001-Add-external-key-file-to-LUKS-partitions.patch \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'tpm-pcr-23', 'file://0001-use-PCR-23-for-TMP2-to-encrypt-storage.patch', '', d)} \
 "
 SRCREV = "91ac485a2495c2ed9fd9aac85d22f299467a6c80"
 
