@@ -1,0 +1,49 @@
+From 765cff7bc338819d852e54fbc0a321c8bbedf971 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Mon, 17 Jul 2023 14:55:58 +0800
+Subject: [PATCH] use PCR 23 for TMP2 to encrypt storage
+
+Original PCR 7 is used for Secure Boot Policy [1][2]
+
+The benefit of anchoring the TPM is that the machine status cannot be
+compromised by any attack. If compromised, the system cannot boot up
+due to the failure when mouting the rootfs, or access the encrypted partition
+when mounting the LUKS partition. This is caused by the fact that the content
+of PCR 7 is different with the value when creating the encrypted storage.
+Usually, the content of PCR 7 is calculated based on the status of UEFI
+secure boot. [3]
+
+If use PCR 7 for TPM2 to encrypt disk while secure boot is disable, and
+then enable secure boot, the PCR7 is forbidden to use for TPM2 due to
+status of UEFI secure boot is changed. Use PCR 23 for TPM2 as workaround
+for this situation
+
+PCR 23 is application support that can be set and reset by the OS [1]
+
+[1] https://wiki.gentoo.org/wiki/Trusted_Platform_Module
+[2] https://github.com/jiazhang0/cryptfs-tpm2/blob/master/README#L72
+[3] https://github.com/jiazhang0/meta-secure-core/tree/master/meta-encrypted-storage#mount-the-luks-partition
+
+Upstream-Status: Inappropriate [binary specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ src/include/cryptfs_tpm2.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/include/cryptfs_tpm2.h b/src/include/cryptfs_tpm2.h
+index 2a013d7..9f38b16 100644
+--- a/src/include/cryptfs_tpm2.h
++++ b/src/include/cryptfs_tpm2.h
+@@ -177,7 +177,7 @@
+ #endif
+ 
+ /* The PCR index used to seal/unseal the passphrase */
+-#define CRYPTFS_TPM2_PCR_INDEX			7
++#define CRYPTFS_TPM2_PCR_INDEX			23
+ 
+ /* The maximum length of passphrase explicitly specified */
+ #define CRYPTFS_TPM2_PASSPHRASE_MAX_SIZE	64
+-- 
+2.27.0
+
