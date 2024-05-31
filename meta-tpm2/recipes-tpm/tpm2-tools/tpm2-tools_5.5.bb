@@ -8,6 +8,7 @@ LIC_FILES_CHKSUM = "file://docs/LICENSE;md5=a846608d090aa64494c45fc147cc12e3"
 SRC_URI = "https://github.com/tpm2-software/${BPN}/releases/download/${PV}/${BPN}-${PV}.tar.gz \
            file://0001-tests-switch-to-python3.patch \
            file://CVE-2024-29039.patch \
+           file://CVE-2024-29038.patch \
           "
 
 SRC_URI[md5sum] = "10c0bd5be82c316598969745f178f04b"
